@@ -66,5 +66,26 @@ def get_fallback_materials(query: str) -> List[MaterialRecommendation]:
     ]
     return fallback_materials
 
+def extract_learning_keywords(message: str) -> str:
+    """Extract learning-related keywords from user message"""
+    learning_indicators = [
+        "belajar", "materi", "tutorial", "course", "kursus", "pelajaran",
+        "pembelajaran", "edukasi", "panduan", "guide", "cara", "how to",
+        "explain", "jelaskan", "ajarkan", "teach", "study", "kuliah"
+    ]
+    
+    message_lower = message.lower()
+
+    has_learning_intent = any(indicator in message_lower for indicator in learning_indicators)
+    
+    if has_learning_intent:
+        words = message.split()
+        stop_words = {"saya", "aku", "untuk", "tentang", "yang", "dan", "atau", "adalah", "ini", "itu"}
+        keywords = [word for word in words if len(word) > 3 and word.lower() not in stop_words]
+        
+        return " ".join(keywords[:3])  # Take first 3 meaningful words
+    
+    return ""
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
