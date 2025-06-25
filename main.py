@@ -1,4 +1,5 @@
-from fastapi import FastAPI
+import json
+from fastapi import FastAPI, Form, HTTPException
 import requests
 import uvicorn
 import os
@@ -84,7 +85,7 @@ def extract_learning_keywords(message: str) -> str:
         stop_words = {"saya", "aku", "untuk", "tentang", "yang", "dan", "atau", "adalah", "ini", "itu"}
         keywords = [word for word in words if len(word) > 3 and word.lower() not in stop_words]
         
-        return " ".join(keywords[:3])  # Take first 3 meaningful words
+        return " ".join(keywords[:3])
     
     return ""
 
@@ -172,6 +173,42 @@ Jawab dengan format:
 - Tips tambahan (jika perlu)"""
 
     return prompt
+
+
+@app.post("/chat")
+async def chat_endpoint(
+    message: str = Form(...),
+    conversation_history: str = Form(default="[]"),
+):
+    """Main chat endpoint"""
+    try:
+        try:
+            history = json.loads(conversation_history) if conversation_history else []
+        except:
+            history = []
+        
+        search_keywords = extract_learning_keywords(message)
+        
+        materials = []
+        if search_keywords:
+            materials = search_learning_materials(search_keywords)
+        
+        prompt = create_learning_prompt(message, materials, history)
+        
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        response = model.generate_content(prompt)
+        
+        chatbot_response = response.text
+        
+        return {
+            "response": chatbot_response,
+            "materials": [material.dict() for material in materials],
+            "has_materials": len(materials) > 0
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating response: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
