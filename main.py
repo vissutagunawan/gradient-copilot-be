@@ -135,5 +135,43 @@ def search_learning_materials(query: str) -> List[MaterialRecommendation]:
         print(f"SerpAPI error: {e}")
         return get_fallback_materials(query)
 
+def create_learning_prompt(user_message: str, materials: List[MaterialRecommendation], conversation_history: List[Dict]) -> str:
+    """Create a structured prompt for Gemini with learning materials"""
+    
+    context = ""
+    if conversation_history:
+        context = "\n".join([
+            f"{'User' if msg.get('role') == 'user' else 'Assistant'}: {msg.get('content', '')}"
+            for msg in conversation_history[-4:]  # Last 4 messages for context
+        ])
+        context = f"Conversation Context:\n{context}\n\n"
+    
+    materials_text = ""
+    if materials:
+        materials_text = "Materi Pembelajaran yang Relevan:\n"
+        for i, material in enumerate(materials, 1):
+            materials_text += f"{i}. {material.title}\n   URL: {material.url}\n   Deskripsi: {material.description}\n\n"
+    
+    prompt = f"""Kamu adalah Gradient Copilot, asisten pembelajaran AI yang membantu pengguna belajar berbagai topik.
+
+{context}Pertanyaan User: {user_message}
+
+{materials_text}
+
+Instruksi:
+1. Berikan jawaban yang helpful dan educational dalam bahasa Indonesia
+2. Jika user menanyakan materi pembelajaran, reference materi yang sudah diberikan di atas
+3. Berikan penjelasan yang clear dan easy to understand
+4. Jika ada materi pembelajaran yang relevan, suggest user untuk mengunjungi link tersebut
+5. Gunakan format yang rapi dengan bullet points atau numbering jika perlu
+6. Sesuaikan tone dengan friendly dan encouraging
+
+Jawab dengan format:
+- Penjelasan/jawaban utama
+- Rekomendasi materi (jika ada dan relevan)
+- Tips tambahan (jika perlu)"""
+
+    return prompt
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
