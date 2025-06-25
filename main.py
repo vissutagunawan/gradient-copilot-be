@@ -1,5 +1,5 @@
 import json
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 import requests
 import uvicorn
 import os
@@ -8,6 +8,9 @@ import google.generativeai as genai
 from pydantic import BaseModel
 from typing import List, Dict, Optional
 from fastapi.middleware.cors import CORSMiddleware
+from PIL import Image
+import io
+import base64
 
 app = FastAPI(title="Gradient Copilot API", version="1.0.0")
 
@@ -174,13 +177,40 @@ Jawab dengan format:
 
     return prompt
 
+async def process_image(image_file: UploadFile) -> str:
+    """Process uploaded image and convert to base64 for Gemini"""
+    try:
+        # Read image content
+        image_content = await image_file.read()
+        
+        # Convert to PIL Image and resize if too large
+        image = Image.open(io.BytesIO(image_content))
+        
+        # Resize if image is too large (max 1024x1024)
+        if image.width > 1024 or image.height > 1024:
+            image.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
+        
+        # Convert back to bytes
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format=image.format or 'JPEG')
+        img_byte_arr = img_byte_arr.getvalue()
+        
+        # Convert to base64
+        image_base64 = base64.b64encode(img_byte_arr).decode()
+        
+        return image_base64
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
+
+
 
 @app.post("/chat")
 async def chat_endpoint(
     message: str = Form(...),
     conversation_history: str = Form(default="[]"),
+    image: Optional[UploadFile] = File(None)
 ):
-    """Main chat endpoint"""
+    """Main chat endpoint with optional image processing"""
     try:
         try:
             history = json.loads(conversation_history) if conversation_history else []
@@ -197,7 +227,20 @@ async def chat_endpoint(
         
         model = genai.GenerativeModel('gemini-1.5-flash')
         
-        response = model.generate_content(prompt)
+        if image:
+            image_base64 = await process_image(image)
+            
+            image_prompt = f"{prompt}\n\n[User has attached an image. Please analyze the image and provide relevant learning assistance based on what you see in the image.]"
+            
+            response = model.generate_content([
+                image_prompt,
+                {
+                    "mime_type": image.content_type,
+                    "data": image_base64
+                }
+            ])
+        else:
+            response = model.generate_content(prompt)
         
         chatbot_response = response.text
         
