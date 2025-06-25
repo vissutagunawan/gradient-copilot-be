@@ -3,6 +3,8 @@ import uvicorn
 import os
 from dotenv import load_dotenv
 import google.generativeai as genai
+from pydantic import BaseModel
+from typing import List, Dict, Optional
 
 app = FastAPI(title="Gradient Copilot API", version="1.0.0")
 
@@ -12,6 +14,16 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 SERP_API_KEY = os.getenv("SERP_API_KEY")
 
 genai.configure(api_key=GEMINI_API_KEY)
+
+class ChatRequest(BaseModel):
+    message: str
+    conversation_history: Optional[List[Dict]] = []
+
+class MaterialRecommendation(BaseModel):
+    title: str
+    url: str
+    description: str
+    source: str
 
 @app.get("/")
 async def root():
