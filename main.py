@@ -2,6 +2,7 @@ from fastapi import FastAPI
 import uvicorn
 import os
 from dotenv import load_dotenv
+import google.generativeai as genai
 
 app = FastAPI(title="Gradient Copilot API", version="1.0.0")
 
@@ -9,6 +10,8 @@ load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 SERP_API_KEY = os.getenv("SERP_API_KEY")
+
+genai.configure(api_key=GEMINI_API_KEY)
 
 @app.get("/")
 async def root():
