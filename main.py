@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import requests
 import uvicorn
 import os
 from dotenv import load_dotenv
@@ -86,6 +87,53 @@ def extract_learning_keywords(message: str) -> str:
         return " ".join(keywords[:3])  # Take first 3 meaningful words
     
     return ""
+
+def search_learning_materials(query: str) -> List[MaterialRecommendation]:
+    """Search for learning materials using SerpAPI"""
+    try:
+        search_query = f"{query} tutorial course learning material"
+        
+        params = {
+            "engine": "google",
+            "q": search_query,
+            "api_key": SERP_API_KEY,
+            "num": 8,
+            "hl": "id",
+        }
+        
+        response = requests.get("https://serpapi.com/search", params=params)
+        results = response.json()
+        
+        materials = []
+        organic_results = results.get("organic_results", [])
+        
+        educational_domains = [
+            "youtube.com", "coursera.org", "udemy.com", "khanacademy.org",
+            "edx.org", "wikipedia.org", "medium.com", "github.com",
+            "stackoverflow.com", "w3schools.com", "geeksforgeeks.org",
+            "freecodecamp.org", "codecademy.com"
+        ]
+        
+        for result in organic_results[:5]:
+            title = result.get("title", "")
+            url = result.get("link", "")
+            snippet = result.get("snippet", "")
+            
+            is_educational = any(domain in url.lower() for domain in educational_domains)
+            
+            if title and url and (is_educational or "tutorial" in title.lower() or "course" in title.lower()):
+                materials.append(MaterialRecommendation(
+                    title=title,
+                    url=url,
+                    description=snippet[:150] + "..." if len(snippet) > 150 else snippet,
+                    source=url.split('/')[2] if '/' in url else url
+                ))
+        
+        return materials[:4]
+        
+    except Exception as e:
+        print(f"SerpAPI error: {e}")
+        return get_fallback_materials(query)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
