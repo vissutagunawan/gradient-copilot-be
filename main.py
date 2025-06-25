@@ -10,6 +10,10 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 SERP_API_KEY = os.getenv("SERP_API_KEY")
 
+@app.get("/")
+async def root():
+    return {"message": "Welcome to the Gradient Copilot API"}
+
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "service": "Gradient Copilot API"}
