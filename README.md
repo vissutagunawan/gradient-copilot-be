@@ -17,9 +17,14 @@ This project was built for **Gradient's Software Engineer Intern (Summer 2025)**
 
 ## ✨ Features (Assignment Requirements Met)
 - 🤖 Free LLM API integration (Google Gemini)
-- 🔍 Real-time material search and recommendations
+- 🔍 Real-time material search and recommendations.
 - 📷 Image upload and analysis support
 - 🚀 Deployed to free cloud service (Railway)
+
+## 🚀 Feature Improvisation
+**Beyond Assignment Requirements:**
+
+Instead of using static dummy data, this application implements live **SerpAPI integration** for real-time web search functionality. The system intelligently searches for educational content from trusted sources (YouTube, Coursera, Khan Academy, etc.) and provides users with current, relevant learning materials. Dummy data serves as a reliable fallback mechanism when external APIs encounter errors.
 
 ## 🔮 Future Development
 - Integrate with Gradient's study materials for a more specialized material recommendations.
