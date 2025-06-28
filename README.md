@@ -15,6 +15,41 @@ This project was built for **Gradient's Software Engineer Intern (Summer 2025)**
 - Image Processing: Pillow (PIL)
 - Deployment: Railway
 
+## 🛠️ Setup
+
+### Prerequisites
+- Python 3.11+
+- pip package manager
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/vissutagunawan/gradient-copilot-be.git
+cd gradient-copilot-be
+
+# Create virtual environment
+python -m venv env
+
+# Activate virtual environment
+# On Windows:
+env\Scripts\activate
+# On macOS/Linux:
+source env/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Create environment file
+cp .env.example .env
+
+# Add your API keys to .env file
+GEMINI_API_KEY=your_gemini_api_key_here
+SERP_API_KEY=your_serpapi_key_here
+
+# Run the server
+uvicorn main:app --reload
+```
+
 ## ✨ Features (Assignment Requirements Met)
 - 🤖 Free LLM API integration (Google Gemini)
 - 🔍 Real-time material search and recommendations.
