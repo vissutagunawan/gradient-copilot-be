@@ -10,7 +10,7 @@ This project was built for **Gradient's Software Engineer Intern (Summer 2025)**
 
 ## 🛠️ Tech Stack
 - Framework: FastAPI (Python)
-- AI/LLM: Google Gemini API
+- AI/LLM: Google Gemini API (Gemini 1.5 Flash)
 - Search: SerpAPI for educational content discovery
 - Image Processing: Pillow (PIL)
 - Deployment: Railway
